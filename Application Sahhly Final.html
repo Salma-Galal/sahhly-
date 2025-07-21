@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sahhly - Your Digital Wallet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base font and anti-aliasing for better text rendering across devices */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Utility class to hide elements using display: none; */
+        .hidden {
+            display: none;
+        }
+        /* Styling for the common back button used in sub-interfaces */
+        .back-button {
+            background-color: #f59e0b; /* Tailwind amber-500 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1.5rem;
+            transition: background-color 0.3s ease; /* Smooth hover effect */
+        }
+        .back-button:hover {
+            background-color: #d97706; /* Tailwind amber-600 on hover */
+        }
+        /* Styling for mock credit cards */
+        .credit-card {
+            background: linear-gradient(135deg, #1f2937, #4b5563); /* Dark gray gradient */
+            color: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            aspect-ratio: 16 / 9; /* Standard card aspect ratio */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .credit-card.visa {
+            background: linear-gradient(135deg, #4299e1, #3182ce); /* Blue gradient */
+        }
+        .credit-card.mastercard {
+            background: linear-gradient(135deg, #ef4444, #dc2626); /* Red gradient */
+        }
+        .credit-card .chip {
+            width: 40px;
+            height: 30px;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .credit-card .logo {
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-white text-gray-800 flex flex-col items-center p-4 sm:p-6">
+
+    <!-- Header Section: Contains app logo, title, and mock user ID display -->
+    <header class="w-full max-w-md flex items-center justify-between py-4">
+        <div class="flex items-center space-x-2">
+            <!-- Sahhly App Icon (Custom SVG - represents linked services/ease) -->
+            <div class="bg-amber-600 p-2 rounded-full shadow-md">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-amber-800">Sahhly</h1>
+        </div>
+        <!-- User ID Display (mocked for UI demo, would be dynamic from auth in real app) -->
+        <div id="userIdDisplay" class="text-sm text-gray-600">
+             User ID: <span class="font-semibold"></span>
+        </div>
+    </header>
+
+    <!-- Main Content Area: This section holds the primary app features, visible by default -->
+    <main id="mainContent" class="w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6">
+
+        <!-- Send Money Section: Allows users to input recipient and amount -->
+        <section class="bg-white p-5 rounded-xl shadow-sm">
+            <h2 class="text-xl font-semibold mb-3 flex items-center">
+                <!-- Send Icon (Inline SVG equivalent of Lucide-react Send) -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-amber-600"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                Send Money
+            </h2>
+            <div class="space-y-3">
+                <input
+                    type="text"
+                    placeholder="Account Name or Phone Number"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                />
+                <input
+                    type="number"
+                    placeholder="Amount"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                />
+                <button class="w-full bg-amber-600 text-white py-3 rounded-lg font-semibold hover:bg-amber-700 transition duration-300">
+                    Confirm Send
+                </button>
+            </div>
+        </section>
+
+        <!-- Balance Section: Displays the user's current balance -->
+        <section class="bg-white p-5 rounded-xl shadow-sm">
+            <h2 class="text-xl font-semibold mb-3 flex items-center">
+                <!-- Wallet Icon (Inline SVG equivalent of Lucide-react Wallet) -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-amber-600"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"></path><path d="M18 9.5a.5.5 0 0 0 1 0V9h-1v.5Z"></path></svg>
+                Your Balance
+            </h2>
+            <div class="text-center">
+                <p class="text-4xl font-bold text-amber-800 mb-2" id="balanceDisplay"></p>
+                <p class="text-gray-600">Available Amount</p>
+            </div>
+        </section>
+
+        <!-- Accessibility Features Section: Buttons to navigate to accessibility interfaces -->
+        <section class="bg-white p-5 rounded-xl shadow-sm">
+            <h2 class="text-xl font-semibold mb-3 flex items-center">
+                <!-- BookOpen Icon (Inline SVG equivalent of Lucide-react BookOpen) -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-amber-600"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+                Accessibility features
+            </h2>
+            <div class="grid grid-cols-2 gap-4">
+                <button
+                    id="voiceControlBtn"
+                    class="flex flex-col items-center justify-center p-4 bg-amber-50 rounded-lg shadow-sm hover:bg-amber-100 transition duration-300 text-amber-800 font-medium"
+                >
+                    <!-- Mic Icon (Inline SVG equivalent of Lucide-react Mic) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
+                    Voice Control
+                </button>
+                <button
+                    id="signLanguageBtn"
+                    class="flex flex-col items-center justify-center p-4 bg-amber-50 rounded-lg shadow-sm hover:bg-amber-100 transition duration-300 text-amber-800 font-medium"
+                >
+                    <!-- MessageSquare Icon (Inline SVG equivalent of Lucide-react MessageSquare) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Sign Language Guides
+                </button>
+                <button
+                    id="textSupportBtn"
+                    class="flex flex-col items-center justify-center p-4 bg-amber-50 rounded-lg shadow-sm hover:bg-amber-100 transition duration-300 text-amber-800 font-medium col-span-2"
+                >
+                    <!-- MessageSquare Icon (Inline SVG equivalent of Lucide-react MessageSquare) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Text Support
+                </button>
+            </div>
+        </section>
+
+        <!-- Emergency Button: Prominent button for urgent contact -->
+        <section class="p-2">
+            <button
+                id="emergencyBtn"
+                class="w-full bg-red-600 text-white py-4 rounded-xl font-bold text-lg shadow-md hover:bg-red-700 transition duration-300 flex items-center justify-center"
+            >
+                <!-- PhoneCall Icon (Inline SVG equivalent of Lucide-react PhoneCall) -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                Emergency Help
+            </button>
+        </section>
+
+        <!-- Recent Transactions Section: Displays a list of recent financial activities -->
+        <section class="bg-white p-5 rounded-xl shadow-sm">
+            <h2 class="text-xl font-semibold mb-3 flex items-center">
+                <!-- History Icon (Inline SVG equivalent of Lucide-react History) -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-amber-600"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.75L3 8"></path><path d="M3 3v5h5"></path></svg>
+                Recent Transactions
+            </h2>
+            <ul id="transactionsList" class="space-y-3">
+                <!-- Transactions will be inserted here by JavaScript -->
+            </ul>
+        </section>
+
+    </main>
+
+    <!-- ACCESSIBILITY INTERFACES: These sections are initially hidden and shown on demand -->
+
+    <!-- Voice Control Interface: Provides information for voice commands -->
+    <div id="voiceControlInterface" class="hidden w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6 text-center">
+        <h2 class="text-3xl font-bold text-amber-800 mb-4">Voice Control</h2>
+        <p class="text-gray-700 text-lg mb-6">
+            Say commands like:
+        </p>
+        <ul class="list-disc list-inside text-left mx-auto max-w-xs space-y-2 text-gray-700">
+            <li>"Send money to Malak"</li>
+            <li>"Check my balance"</li>
+            <li>"Send 100 EGP to Maha"</li>
+            <li>"Show recent transactions"</li>
+        </ul>
+        <div class="mt-8 flex justify-center items-center">
+            <!-- Large Mic Icon with pulse animation to indicate listening -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-600 animate-pulse"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
+        </div>
+        <p class="text-gray-500 mt-4">Listening for your command...</p>
+        <button id="backFromVoiceBtn" class="back-button w-full">
+            <!-- Back Arrow Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Main
+        </button>
+    </div>
+
+    <!-- Sign Language Guides Interface: Provides placeholder video guides -->
+    <div id="signLanguageInterface" class="hidden w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6 text-center">
+        <h2 class="text-3xl font-bold text-amber-800 mb-4">Sign Language Guides</h2>
+        <p class="text-gray-700 text-lg mb-6">
+            Watch video guides for common banking tasks in sign language.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Placeholder video thumbnails (replace with actual video embeds/links in real app) -->
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <img src="https://placehold.co/300x180/E9D8A6/78350F?text=Video+1" alt="Placeholder video thumbnail" class="w-full rounded-md mb-2">
+                <p class="font-medium text-amber-800">How to Send Money</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <img src="https://placehold.co/300x180/E9D8A6/78350F?text=Video+2" alt="Placeholder video thumbnail" class="w-full rounded-md mb-2">
+                <p class="font-medium text-amber-800">Checking Your Balance</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <img src="https://placehold.co/300x180/E9D8A6/78350F?text=Video+3" alt="Placeholder video thumbnail" class="w-full rounded-md mb-2">
+                <p class="font-medium text-amber-800">Paying Bills</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <img src="https://placehold.co/300x180/E9D8A6/78350F?text=Video+4" alt="Placeholder video thumbnail" class="w-full rounded-md mb-2">
+                <p class="font-medium text-amber-800">Account Statements</p>
+            </div>
+        </div>
+        <button id="backFromSignBtn" class="back-button w-full">
+            <!-- Back Arrow Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Main
+        </button>
+    </div>
+
+    <!-- Text Support Interface: A basic chat window for support interaction -->
+    <div id="textSupportInterface" class="hidden w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6 flex flex-col h-[60vh]">
+        <h2 class="text-3xl font-bold text-amber-800 mb-4 text-center">Text Support Chat</h2>
+        <div id="chatWindow" class="flex-grow bg-white rounded-lg p-4 overflow-y-auto shadow-inner mb-4 space-y-3">
+            <!-- Initial chat messages (simulate a conversation start) -->
+            <div class="flex justify-start">
+                <div class="bg-gray-200 p-3 rounded-xl rounded-bl-none max-w-[80%] text-gray-800">
+                    Hello! How can I assist you today?
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <div class="bg-amber-100 p-3 rounded-xl rounded-br-none max-w-[80%] text-amber-800">
+                    Hi, I need help with my recent transaction.
+                </div>
+            </div>
+        </div>
+        <div class="flex space-x-2">
+            <input
+                type="text"
+                id="chatInput"
+                placeholder="Type your message..."
+                class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+            />
+            <button id="sendChatBtn" class="bg-amber-600 text-white p-3 rounded-lg font-semibold hover:bg-amber-700 transition duration-300">
+                <!-- Send Icon for chat input -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="send-icon"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+        <button id="backFromTextBtn" class="back-button w-full">
+            <!-- Back Arrow Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Main
+        </button>
+    </div>
+
+    <!-- PROFILE INTERFACE: Section for user profile details and settings -->
+    <div id="profileInterface" class="hidden w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6 text-center">
+        <h2 class="text-3xl font-bold text-amber-800 mb-6">Your Profile</h2>
+
+        <!-- Profile Picture Placeholder (displays "Salma" text) -->
+        <div class="flex justify-center mb-6">
+            <img src="https://placehold.co/120x120/E9D8A6/78350F?text=Salma" alt="Profile Picture" class="rounded-full border-4 border-amber-600 shadow-md">
+        </div>
+
+        <!-- User Name and ID Display -->
+        <div class="mb-6">
+            <p class="text-xl font-semibold text-gray-800">Welcome, <span id="profileUserName"></span>!</p>
+            <p id="profileUserId" class="text-sm text-gray-600">User ID: </p>
+        </div>
+
+        <!-- Balance Inquiry Section (re-uses balance display logic) -->
+        <section class="bg-white p-5 rounded-xl shadow-sm mb-6">
+            <h3 class="text-xl font-semibold mb-3 flex items-center justify-center">
+                <!-- Wallet Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-amber-600"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"></path><path d="M18 9.5a.5.5 0 0 0 1 0V9h-1v.5Z"></path></svg>
+                Balance Inquiry
+            </h3>
+            <p class="text-4xl font-bold text-amber-800" id="profileBalanceDisplay"></p>
+            <p class="text-gray-600 mt-2">Current Available Amount</p>
+        </section>
+
+        <!-- Other Profile Details / Settings Options -->
+        <div class="space-y-4 text-left">
+            <div class="flex items-center bg-white p-4 rounded-lg shadow-sm">
+                <!-- Mail Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 text-amber-600"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+                <div>
+                    <p class="font-medium">Email Address</p>
+                    <p class="text-gray-600">salma.moheeb@example.com</p>
+                </div>
+            </div>
+            <div class="flex items-center bg-white p-4 rounded-lg shadow-sm">
+                <!-- Phone Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 text-amber-600"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                <div>
+                    <p class="font-medium">Phone Number</p>
+                    <p class="text-gray-600">+20 100 123 4567</p>
+                </div>
+            </div>
+            <button class="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition duration-300 flex items-center justify-center">
+                <!-- Settings Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.35a2 2 0 0 0 .73 2.73l.09.09a2 2 0 0 1 0 2.83l-.08.08a2 2 0 0 0-.73 2.73l.78 1.35a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.78-1.35a2 2 0 0 0-.73-2.73l-.09-.09a2 2 0 0 1 0-2.83l.08-.08a2 2 0 0 0 .73-2.73l-.78-1.35a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                Account Settings
+            </button>
+        </div>
+
+        <button id="backFromProfileBtn" class="back-button w-full">
+            <!-- Back Arrow Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Main
+        </button>
+    </div>
+
+    <!-- CARDS INTERFACE: New section for managing cards -->
+    <div id="cardsInterface" class="hidden w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6 text-center">
+        <h2 class="text-3xl font-bold text-amber-800 mb-6">Your Cards</h2>
+
+        <div class="space-y-4">
+            <!-- Mock Credit Card 1 (Visa) -->
+            <div class="credit-card visa">
+                <div class="flex justify-between items-start">
+                    <div class="chip"></div>
+                    <span class="logo">VISA</span>
+                </div>
+                <div class="text-2xl font-mono tracking-wider">**** **** **** 1234</div>
+                <div class="flex justify-between items-center text-sm">
+                    <span>Salma Moheeb</span>
+                    <span>08/27</span>
+                </div>
+            </div>
+
+            <!-- Mock Credit Card 2 (Mastercard) -->
+            <div class="credit-card mastercard">
+                <div class="flex justify-between items-start">
+                    <div class="chip"></div>
+                    <span class="logo">MasterCard</span>
+                </div>
+                <div class="text-2xl font-mono tracking-wider">**** **** **** 5678</div>
+                <div class="flex justify-between items-center text-sm">
+                    <span>Salma Moheeb</span>
+                    <span>11/26</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition duration-300 mt-6 flex items-center justify-center">
+            <!-- Plus Circle Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="16"></line><line x1="8" x2="16" y1="12" y2="12"></line></svg>
+            Add New Card
+        </button>
+        <button class="w-full bg-gray-500 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition duration-300 mt-3 flex items-center justify-center">
+            <!-- Settings Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.35a2 2 0 0 0 .73 2.73l.09.09a2 2 0 0 1 0 2.83l-.08.08a2 2 0 0 0-.73 2.73l.78 1.35a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.78-1.35a2 2 0 0 0-.73-2.73l-.09-.09a2 2 0 0 1 0-2.83l.08-.08a2 2 0 0 0 .73-2.73l-.78-1.35a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            Manage Cards
+        </button>
+
+        <button id="backFromCardsBtn" class="back-button w-full">
+            <!-- Back Arrow Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Main
+        </button>
+    </div>
+
+    <!-- HISTORY INTERFACE: New section for detailed transaction history -->
+    <div id="historyInterface" class="hidden w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6">
+        <h2 class="text-3xl font-bold text-amber-800 mb-6 text-center">Transaction History</h2>
+
+        <!-- Filter/Sort Options (Placeholder) -->
+        <div class="flex justify-around bg-white p-3 rounded-xl shadow-sm mb-4">
+            <button class="text-amber-600 font-semibold border-b-2 border-amber-600 pb-1">All</button>
+            <button class="text-gray-500 hover:text-amber-600">Sent</button>
+            <button class="text-gray-500 hover:text-amber-600">Received</button>
+            <button class="text-gray-500 hover:text-amber-600">Pending</button>
+        </div>
+
+        <!-- Detailed Transaction List -->
+        <ul id="fullTransactionsList" class="space-y-3 bg-white p-4 rounded-xl shadow-sm">
+            <!-- Transactions will be dynamically loaded here -->
+        </ul>
+        
+        <button id="backFromHistoryBtn" class="back-button w-full">
+            <!-- Back Arrow Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Main
+        </button>
+    </div>
+
+
+    <!-- Bottom Navigation Bar: Fixed at the bottom for easy access to main sections -->
+    <nav class="w-full max-w-md bg-white rounded-t-2xl shadow-xl fixed bottom-0 left-1/2 -translate-x-1/2 flex justify-around py-3 border-t border-gray-200">
+        <button id="navHomeBtn" class="flex flex-col items-center text-amber-600">
+            <!-- Wallet Icon for Home -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="wallet"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"></path><path d="M18 9.5a.5.5 0 0 0 1 0V9h-1v.5Z"></path></svg>
+            <span class="text-xs mt-1">Home</span>
+        </button>
+        <button id="navCardsBtn" class="flex flex-col items-center text-gray-500 hover:text-amber-600">
+            <!-- CreditCard Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="credit-card"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
+            <span class="text-xs mt-1">Cards</span>
+        </button>
+        <button id="navHistoryBtn" class="flex flex-col items-center text-gray-500 hover:text-amber-600">
+            <!-- History Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.75L3 8"></path><path d="M3 3v5h5"></path></svg>
+            <span class="text-xs mt-1">History</span>
+        </button>
+        <button id="navProfileBtn" class="flex flex-col items-center text-gray-500 hover:text-amber-600">
+            <!-- User Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span class="text-xs mt-1">Profile</span>
+        </button>
+    </nav>
+
+    <script>
+        // --- Data ---
+        // Mock data for user details, balance, and transactions.
+        // In a real application, this would typically be fetched from a backend API.
+        const userName = 'Salma'; // The requested user name for the profile
+        const balance = '1,000,000.00'; // The requested balance format (removed space to ensure proper number parsing if needed later)
+        const currency = 'EGP';
+        const transactions = [
+            { id: 1, type: 'Sent', to: 'Rodina Haitham', amount: '250.00', date: 'August 26, 2025', status: 'Completed' },
+            { id: 2, type: 'Received', from: 'Fajr Reda', amount: '150.00', date: 'August 18, 2025', status: 'Completed' },
+            { id: 3, type: 'Sent', to: 'Bank Transfer', amount: '1,000.00', date: 'July 17, 2025', status: 'Pending' },
+            { id: 4, type: 'Received', from: 'Maha Abdelhady', amount: '500.00', date: 'May 5, 2025', status: 'Completed' },
+            { id: 5, type: 'Sent', to: 'Electricity Bill', amount: '300.00', date: 'April 26, 2025', status: 'Completed' },
+            { id: 6, type: 'Received', from: 'Salary', amount: '5000.00', date: 'April 01, 2025', status: 'Completed' },
+        ];
+
+        // --- DOM Element References ---
+        // Get references to the main content area and all sub-interfaces for show/hide logic
+        const mainContent = document.getElementById('mainContent');
+        const voiceControlInterface = document.getElementById('voiceControlInterface');
+        const signLanguageInterface = document.getElementById('signLanguageInterface');
+        const textSupportInterface = document.getElementById('textSupportInterface');
+        const profileInterface = document.getElementById('profileInterface');
+        const cardsInterface = document.getElementById('cardsInterface'); // New: Reference to Cards interface
+        const historyInterface = document.getElementById('historyInterface'); // New: Reference to History interface
+
+        // Get references to buttons that trigger the various interfaces
+        const voiceControlBtn = document.getElementById('voiceControlBtn');
+        const signLanguageBtn = document.getElementById('signLanguageBtn');
+        const textSupportBtn = document.getElementById('textSupportBtn');
+        const emergencyBtn = document.getElementById('emergencyBtn');
+
+        // Get references to navigation buttons at the bottom bar
+        const navHomeBtn = document.getElementById('navHomeBtn');
+        const navCardsBtn = document.getElementById('navCardsBtn'); // New: Reference to Cards navigation button
+        const navHistoryBtn = document.getElementById('navHistoryBtn'); // New: Reference to History navigation button
+        const navProfileBtn = document.getElementById('navProfileBtn');
+
+        // Get references to "Back to Main" buttons within each sub-interface
+        const backFromVoiceBtn = document.getElementById('backFromVoiceBtn');
+        const backFromSignBtn = document.getElementById('backFromSignBtn');
+        const backFromTextBtn = document.getElementById('backFromTextBtn');
+        const backFromProfileBtn = document.getElementById('backFromProfileBtn');
+        const backFromCardsBtn = document.getElementById('backFromCardsBtn'); // New: Back button for Cards
+        const backFromHistoryBtn = document.getElementById('backFromHistoryBtn'); // New: Back button for History
+
+        // Get chat specific elements for the Text Support interface
+        const chatWindow = document.getElementById('chatWindow');
+        const chatInput = document.getElementById('chatInput');
+        const sendChatBtn = document.getElementById('sendChatBtn');
+
+        // Get profile specific elements for the Profile interface
+        const profileUserName = document.getElementById('profileUserName');
+        const profileUserId = document.getElementById('profileUserId');
+        const profileBalanceDisplay = document.getElementById('profileBalanceDisplay');
+
+        // Get history specific elements for the History interface
+        const fullTransactionsList = document.getElementById('fullTransactionsList');
+
+        // --- Helper Functions ---
+
+        /**
+         * Hides all main content and sub-interfaces, then displays the specified interface.
+         * This function manages the single-page application "routing" by toggling visibility.
+         * @param {HTMLElement} interfaceToShow - The DOM element of the interface to display.
+         */
+        function showInterface(interfaceToShow) {
+            // Hide all potential main views and sub-interfaces
+            mainContent.classList.add('hidden');
+            voiceControlInterface.classList.add('hidden');
+            signLanguageInterface.classList.add('hidden');
+            textSupportInterface.classList.add('hidden');
+            profileInterface.classList.add('hidden');
+            cardsInterface.classList.add('hidden'); // Hide Cards interface
+            historyInterface.classList.add('hidden'); // Hide History interface
+
+            // Show the requested interface
+            interfaceToShow.classList.remove('hidden');
+        }
+
+        /**
+         * Hides all sub-interfaces and brings the main content area back into view.
+         */
+        function showMainContent() {
+            mainContent.classList.remove('hidden'); // Show main content
+            // Hide all sub-interfaces
+            voiceControlInterface.classList.add('hidden');
+            signLanguageInterface.classList.add('hidden');
+            textSupportInterface.classList.add('hidden');
+            profileInterface.classList.add('hidden');
+            cardsInterface.classList.add('hidden');
+            historyInterface.classList.add('hidden');
+        }
+
+        /**
+         * Displays a message using the browser's alert.
+         * NOTE: In a production application, replace alert() with a custom modal or toast notification for better UX.
+         * @param {string} title - The title for the message box.
+         * @param {string} message - The message content.
+         */
+        function showMessageBox(title, message) {
+            console.log(`${title}: ${message}`); // Log to console for debugging purposes
+            alert(`${title}: ${message}`); // Display as a browser alert
+        }
+
+        /**
+         * Appends a new message bubble to the chat window in the Text Support interface.
+         * @param {string} message - The text content of the message.
+         * @param {'user'|'agent'} sender - The sender of the message ('user' for sent, 'agent' for received).
+         */
+        function appendChatMessage(message, sender) {
+            const messageDiv = document.createElement('div');
+            // Align message bubble based on sender (user messages to the right, agent to the left)
+            messageDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+            
+            const bubbleDiv = document.createElement('div');
+            // Apply different background and text colors for user vs. agent messages
+            bubbleDiv.className = `p-3 rounded-xl max-w-[80%] ${
+                sender === 'user'
+                    ? 'bg-amber-100 rounded-br-none text-amber-800' // Styling for user's messages
+                    : 'bg-gray-200 rounded-bl-none text-gray-800' // Styling for agent's messages
+            }`;
+            bubbleDiv.textContent = message; // Set the message text
+            
+            messageDiv.appendChild(bubbleDiv); // Add the bubble to the message container
+            chatWindow.appendChild(messageDiv); // Add the message container to the chat window
+            chatWindow.scrollTop = chatWindow.scrollHeight; // Automatically scroll to the latest message
+        }
+
+        /**
+         * Renders the full list of transactions into the History interface.
+         */
+        function renderFullTransactions() {
+            fullTransactionsList.innerHTML = ''; // Clear existing list
+            if (transactions.length > 0) {
+                transactions.forEach(transaction => {
+                    const li = document.createElement('li');
+                    li.className = 'flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0';
+
+                    const divLeft = document.createElement('div');
+                    const pName = document.createElement('p');
+                    pName.className = 'font-medium';
+                    pName.textContent = transaction.type === 'Sent' ? `Sent to ${transaction.to}` : `Received from ${transaction.from}`;
+                    const pDate = document.createElement('p');
+                    pDate.className = 'text-sm text-gray-500';
+                    pDate.textContent = transaction.date;
+                    divLeft.appendChild(pName);
+                    divLeft.appendChild(pDate);
+
+                    const divRight = document.createElement('div');
+                    divRight.className = `font-semibold ${transaction.type === 'Sent' ? 'text-red-500' : 'text-green-600'}`;
+                    divRight.textContent = `${transaction.type === 'Sent' ? '-' : '+'}${transaction.amount} ${currency}`;
+
+                    li.appendChild(divLeft);
+                    li.appendChild(divRight);
+                    fullTransactionsList.appendChild(li);
+                });
+            } else {
+                const p = document.createElement('p');
+                p.className = 'text-gray-500 text-center';
+                p.textContent = 'No transactions to display.';
+                fullTransactionsList.appendChild(p);
+            }
+        }
+
+
+        // --- Event Listeners ---
+
+        // Event listener for the "Voice Control" button in Accessibility Tools
+        voiceControlBtn.addEventListener('click', () => {
+            showInterface(voiceControlInterface);
+        });
+
+        // Event listener for the "Sign Language Guides" button in Accessibility Tools
+        signLanguageBtn.addEventListener('click', () => {
+            showInterface(signLanguageInterface);
+        });
+
+        // Event listener for the "Text Support" button in Accessibility Tools
+        textSupportBtn.addEventListener('click', () => {
+            showInterface(textSupportInterface);
+            chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll chat to bottom immediately when opening
+        });
+
+        // Event listener for the "Emergency Help" button (uses alert)
+        emergencyBtn.addEventListener('click', () => {
+            showMessageBox('Emergency Contact', 'Connecting you to emergency services. Please hold...');
+        });
+
+        // Event listener for the "Home" navigation button at the bottom
+        navHomeBtn.addEventListener('click', showMainContent);
+
+        // New: Event listener for the "Cards" navigation button at the bottom
+        navCardsBtn.addEventListener('click', () => {
+            showInterface(cardsInterface);
+        });
+
+        // New: Event listener for the "History" navigation button at the bottom
+        navHistoryBtn.addEventListener('click', () => {
+            showInterface(historyInterface);
+            renderFullTransactions(); // Render transactions when history is shown
+        });
+
+        // Event listener for the "Profile" navigation button at the bottom
+        navProfileBtn.addEventListener('click', () => {
+            showInterface(profileInterface);
+            // Update profile-specific data when the interface is displayed
+            profileUserName.textContent = userName;
+            profileUserId.textContent = `User ID: ${mockUserId}`;
+            profileBalanceDisplay.textContent = `${balance} ${currency}`;
+        });
+
+        // Event listeners for all "Back to Main" buttons within sub-interfaces
+        backFromVoiceBtn.addEventListener('click', showMainContent);
+        backFromSignBtn.addEventListener('click', showMainContent);
+        backFromTextBtn.addEventListener('click', showMainContent);
+        backFromProfileBtn.addEventListener('click', showMainContent);
+        backFromCardsBtn.addEventListener('click', showMainContent); // New: Back button for Cards
+        backFromHistoryBtn.addEventListener('click', showMainContent); // New: Back button for History
+
+        // Event listener for sending chat messages when the send button is clicked
+        sendChatBtn.addEventListener('click', () => {
+            const message = chatInput.value.trim();
+            if (message) {
+                appendChatMessage(message, 'user');
+                chatInput.value = '';
+                setTimeout(() => {
+                    appendChatMessage("Thank you for your message. A support agent will be with you shortly.", 'agent');
+                }, 1000);
+            }
+        });
+
+        // Event listener for pressing Enter key in the chat input field
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendChatBtn.click();
+            }
+        });
+
+        // --- Initial Data Rendering on Page Load ---
+
+        // Display the user's balance and currency on the main content area upon page load
+        document.getElementById('balanceDisplay').textContent = `${balance} ${currency}`;
+
+        // Render the list of recent transactions on the main content area
+        const transactionsList = document.getElementById('transactionsList');
+        if (transactions.length > 0) {
+            // Display only the first 3 transactions for the "Recent Transactions" section on main page
+            transactions.slice(0, 3).forEach(transaction => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0';
+
+                const divLeft = document.createElement('div');
+                const pName = document.createElement('p');
+                pName.className = 'font-medium';
+                pName.textContent = transaction.type === 'Sent' ? `Sent to ${transaction.to}` : `Received from ${transaction.from}`;
+                const pDate = document.createElement('p');
+                pDate.className = 'text-sm text-gray-500';
+                pDate.textContent = transaction.date;
+                divLeft.appendChild(pName);
+                divLeft.appendChild(pDate);
+
+                const divRight = document.createElement('div');
+                divRight.className = `font-semibold ${transaction.type === 'Sent' ? 'text-red-500' : 'text-green-600'}`;
+                divRight.textContent = `${transaction.type === 'Sent' ? '-' : '+'}${transaction.amount} ${currency}`;
+
+                li.appendChild(divLeft);
+                li.appendChild(divRight);
+                transactionsList.appendChild(li);
+            });
+        } else {
+            const p = document.createElement('p');
+            p.className = 'text-gray-500 text-center';
+            p.textContent = 'No recent transactions.';
+            transactionsList.appendChild(p);
+        }
+
+        // Mock User ID display in the header (simulating a unique user identifier)
+        const mockUserId = '240163';
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        userIdDisplay.querySelector('span').textContent = mockUserId;
+    </script>
+</body>
+</html>
