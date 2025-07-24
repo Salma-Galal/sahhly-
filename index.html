@@ -188,7 +188,7 @@
                 <input
                     type="text"
                     id="sendRecipient"
-                    placeholder="Recipient Name or Phone Number"
+                    placeholder= Name or Phone Number"
                     class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
                     dir="auto"
                 />
@@ -359,7 +359,7 @@
             </div>
             <div class="flex justify-end">
                 <div class="bg-amber-100 p-3 rounded-xl rounded-bl-none max-w-[80%] text-amber-800">
-                    Hi, I need help with my recent transaction.
+                    Hi, I need help with my transactions.
                 </div>
             </div>
         </div>
@@ -416,7 +416,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 text-amber-600"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
                 <div>
                     <p class="font-medium">Email Address</p>
-                    <p class="text-gray-600">user@example.com</p>
+                    <p class="text-gray-600">mock.user@example.com</p>
                 </div>
             </div>
             <div class="flex items-center bg-white p-4 rounded-lg shadow-sm">
@@ -469,7 +469,7 @@
 
     <!-- HISTORY INTERFACE: New section for detailed transaction history -->
     <div id="historyInterface" class="hidden w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6">
-        <h2 class="text-3xl font-bold text-amber-800 mb-6 text-center">Transaction History</h2>
+        <h2 class="text-3xl font-bold text-amber-800 mb-6 text-center"> PastTransactions </h2>
 
         <!-- Filter/Sort Options (Placeholder) -->
         <div class="flex justify-around bg-white p-3 rounded-xl shadow-sm mb-4">
@@ -595,12 +595,12 @@
         const appState = {
             userName: 'User',
             userId: '10103',
-            balance: 1000000.00, // Stored as a number for calculations
+            balance: 1,000,000.00, // Stored as a number for calculations
             currency: 'EGP',
             transactions: [
-                { id: 1, type: 'Sent', to: 'Rodina', amount: 250.00, date: 'April 26, 2025', status: 'Completed' },
-                { id: 2, type: 'Received', from: 'Fjr Reda', amount: 150.00, date: 'April 18, 2025', status: 'Completed' },
-                { id: 3, type: 'Sent', to: 'Bank Transfer', amount: 1000.00, date: 'July 17, 2025', status: 'Pending' },
+                { id: 1, type: 'Sent', to: 'Rodaina', amount: 250.00, date: 'April 26, 2025', status: 'Completed' },
+                { id: 2, type: 'Received', from: 'Fajr Reda', amount: 150.00, date: 'April 18, 2025', status: 'Completed' },
+                { id: 3, type: 'Sent', to: 'Bank Transfer', amount: 1,000.00, date: 'July 17, 2025', status: 'Pending' },
                 { id: 4, type: 'Received', from: 'Ahmed Said', amount: 500.00, date: 'April 15, 2025', status: 'Completed' },
                 { id: 5, type: 'Sent', to: 'Electricity Bill', amount: 300.00, date: 'April 10, 2025', status: 'Completed' },
                 { id: 6, type: 'Received', from: 'Salary', amount: 5000.00, date: 'April 01, 2025', status: 'Completed' },
@@ -609,7 +609,7 @@
                 { id: 9, type: 'Sent', to: 'Mobile Recharge', amount: 100.00, date: 'March 20, 2025', status: 'Completed' }
             ],
             cards: [
-                { id: 'c1', type: 'Bank', lastFour: '1234', holder: 'User', expiry: '12/28', scheme: 'Sahhly Bank' },
+                { id: 'c1', type: 'Visa', lastFour: '1234', holder: 'User', expiry: '12/28', scheme: 'Sahhly Account Bank' },
                 { id: 'c2', type: 'Visa', lastFour: '5678', holder: 'User', expiry: '06/27', scheme: 'Visa' },
                 { id: 'c3', type: 'Mastercard', lastFour: '9012', holder: 'User', expiry: '09/26', scheme: 'Mastercard' }
             ]
