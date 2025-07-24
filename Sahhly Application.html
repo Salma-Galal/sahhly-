@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sahhly - Your Digital Wallet</title>
+    <!-- Removed PWA related meta tags and link to manifest to prevent local errors -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            direction: ltr; /* Ensure left-to-right for English text */
+            text-align: left; /* Default text alignment for LTR */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Specific alignment for elements that should be RTL within an LTR context */
+        .text-right-ltr {
+            text-align: right;
+        }
+        /* Tailwind's space-x for LTR layout */
+        .space-x > *:not([hidden]) ~ *:not([hidden]) {
+            margin-left: var(--tw-space-x-reverse); /* Keep consistent with original margin-right definition */
+            margin-right: 0px;
+        }
+        .space-x {
+            --tw-space-x-reverse: 0.75rem; /* Default spacing for LTR */
+        }
+        /* Utility class to hide elements using display: none; */
+        .hidden {
+            display: none;
+        }
+        /* Styling for the common back button used in sub-interfaces */
+        .back-button {
+            background-color: #f59e0b; /* Tailwind amber-500 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1.5rem;
+            transition: background-color 0.3s ease; /* Smooth hover effect */
+        }
+        .back-button:hover {
+            background-color: #d97706; /* Tailwind amber-600 on hover */
+        }
+        /* Hide scrollbar for elements */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* Styling for mock credit cards */
+        .credit-card {
+            background: linear-gradient(135deg, #1f2937, #4b5563); /* Dark gray gradient */
+            color: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            aspect-ratio: 16 / 9; /* Standard card aspect ratio */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .credit-card.visa {
+            background: linear-gradient(135deg, #4299e1, #3182ce); /* Blue gradient */
+        }
+        .credit-card.mastercard {
+            background: linear-gradient(135deg, #ef4444, #dc2626); /* Red gradient */
+        }
+        .credit-card .chip {
+            width: 40px;
+            height: 30px;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .credit-card .logo {
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        /* Styling for all modals (camera service, message, add card) */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .close-button {
+            color: #aaa;
+            float: right; /* Position to the top-right for LTR */
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 15px; /* Adjust for LTR */
+            left: unset; /* Ensure left is not set */
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .video-placeholder {
+            width: 100%;
+            height: 200px;
+            background-color: #eee;
+            border: 1px solid #ccc;
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #666;
+            font-size: 1.1rem;
+            border-radius: 8px;
+        }
+        /* Message Modal specific styles */
+        .message-modal-icon {
+            margin: 0 auto 15px;
+        }
+        .message-modal-icon.success {
+            color: #10B981; /* Green */
+        }
+        .message-modal-icon.error {
+            color: #EF4444; /* Red */
+        }
+        .message-modal-icon.info {
+            color: #3B82F6; /* Blue */
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-white text-gray-800 flex flex-col items-center p-4 sm:p-6">
+
+    <!-- Header Section: Contains app logo, title, and mock user ID display -->
+    <header class="w-full max-w-md flex items-center justify-between py-4">
+        <div class="flex items-center space-x-2">
+            <!-- Sahhly App Icon (Custom SVG - represents linked services/ease) -->
+            <div class="bg-amber-600 p-2 rounded-full shadow-md">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-amber-800">Sahhly</h1>
+        </div>
+        <!-- User ID Display (mocked for UI demo, would be dynamic from auth in real app) -->
+        <div id="userIdDisplay" class="text-sm text-gray-600">
+             User ID: <span class="font-semibold"></span>
+        </div>
+    </header>
+
+    <!-- Main Content Area: This section holds the primary app features, visible by default -->
+    <main id="mainContent" class="w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6">
+
+        <!-- Send Money Section: Allows users to input recipient and amount -->
+        <section class="bg-white p-5 rounded-xl shadow-sm">
+            <h2 class="text-xl font-semibold mb-3 flex items-center">
+                <!-- Send Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-amber-600"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                Transfer Money
+            </h2>
+            <div class="space-y-3">
+                <input
+                    type="text"
+                    id="sendRecipient"
+                    placeholder="Recipient Name or Phone Number"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    dir="auto"
+                />
+                <input
+                    type="number"
+                    id="sendAmount"
+                    placeholder="Amount"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-left"
+                    dir="ltr"
+                />
+                <button id="confirmSendBtn" class="w-full bg-amber-600 text-white py-3 rounded-lg font-semibold hover:bg-amber-700 transition duration-300">
+                    Confirm Transfer
+                </button>
+            </div>
+        </section>
+
+        <!-- Balance Section: Displays the user's current balance -->
+        <section class="bg-white p-5 rounded-xl shadow-sm">
+            <h2 class="text-xl font-semibold mb-3 flex items-center">
+                <!-- Wallet Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-amber-600"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"></path><path d="M18 9.5a.5.5 0 0 0 1 0V9h-1v.5Z"></path></svg>
+                Your Balance
+            </h2>
+            <div class="text-center">
+                <p class="text-4xl font-bold text-amber-800 mb-2" id="balanceDisplay"></p>
+                <p class="text-gray-600">Available Amount</p>
+            </div>
+        </section>
+
+        <!-- Accessibility Features Section: Buttons to navigate to accessibility interfaces -->
+        <section class="bg-white p-5 rounded-xl shadow-sm">
+            <h2 class="text-xl font-semibold mb-3 flex items-center">
+                <!-- BookOpen Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-amber-600"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+                Accessibility Features
+            </h2>
+            <div class="grid grid-cols-2 gap-4">
+                <button
+                    id="voiceControlBtn"
+                    class="flex flex-col items-center justify-center p-4 bg-amber-50 rounded-lg shadow-sm hover:bg-amber-100 transition duration-300 text-amber-800 font-medium"
+                >
+                    <!-- Mic Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
+                    Voice Control
+                </button>
+                <button
+                    id="signLanguageBtn"
+                    class="flex flex-col items-center justify-center p-4 bg-amber-50 rounded-lg shadow-sm hover:bg-amber-100 transition duration-300 text-amber-800 font-medium"
+                >
+                    <!-- MessageSquare Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Sign Language Guides
+                </button>
+                <button
+                    id="textSupportBtn"
+                    class="flex flex-col items-center justify-center p-4 bg-amber-50 rounded-lg shadow-sm hover:bg-amber-100 transition duration-300 text-amber-800 font-medium col-span-2"
+                >
+                    <!-- MessageSquare Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Text Support
+                </button>
+                <button
+                    id="signLanguageServiceBtn"
+                    class="flex flex-col items-center justify-center p-4 bg-amber-50 rounded-lg shadow-sm hover:bg-amber-100 transition duration-300 text-amber-800 font-medium col-span-2"
+                >
+                    <!-- Camera Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Sign Language Support (Camera)
+                </button>
+            </div>
+        </section>
+
+        <!-- Emergency Button: Prominent button for urgent contact -->
+        <section class="p-2">
+            <button
+                id="emergencyBtn"
+                class="w-full bg-red-600 text-white py-4 rounded-xl font-bold text-lg shadow-md hover:bg-red-700 transition duration-300 flex items-center justify-center"
+            >
+                <!-- PhoneCall Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                Emergency Help
+            </button>
+        </section>
+
+        <!-- Recent Transactions Section: Displays a list of recent financial activities -->
+        <section class="bg-white p-5 rounded-xl shadow-sm">
+            <h2 class="text-xl font-semibold mb-3 flex items-center">
+                <!-- History Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-amber-600"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.75L3 8"></path><path d="M3 3v5h5"></path></svg>
+                Recent Transactions
+            </h2>
+            <ul id="transactionsList" class="space-y-3">
+                <!-- Transactions will be inserted here by JavaScript -->
+            </ul>
+        </section>
+
+    </main>
+
+    <!-- ACCESSIBILITY INTERFACES: These sections are initially hidden and shown on demand -->
+
+    <!-- Voice Control Interface: Provides information for voice commands -->
+    <div id="voiceControlInterface" class="hidden w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6 text-center">
+        <h2 class="text-3xl font-bold text-amber-800 mb-4">Voice Control</h2>
+        <p class="text-gray-700 text-lg mb-6">
+            Say commands like:
+        </p>
+        <ul class="list-disc list-inside text-left mx-auto max-w-xs space-y-2 text-gray-700">
+            <li>"Transfer money to Malak"</li>
+            <li>"Check my balance"</li>
+            <li>"Send 100 EGP to Maha"</li>
+            <li>"Show recent transactions"</li>
+        </ul>
+        <div class="mt-8 flex justify-center items-center">
+            <!-- Large Mic Icon with pulse animation to indicate listening -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-600 animate-pulse"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
+        </div>
+        <p class="text-gray-500 mt-4">Listening for your command...</p>
+        <button id="backFromVoiceBtn" class="back-button w-full">
+            <!-- Back Arrow Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Main
+        </button>
+    </div>
+
+    <!-- Sign Language Guides Interface: Provides placeholder video guides -->
+    <div id="signLanguageInterface" class="hidden w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6 text-center">
+        <h2 class="text-3xl font-bold text-amber-800 mb-4">Sign Language Guides</h2>
+        <p class="text-gray-700 text-lg mb-6">
+            Watch video guides for common banking tasks in sign language.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Placeholder video thumbnails (replace with actual video embeds/links in real app) -->
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <img src="https://placehold.co/300x180/E9D8A6/78350F?text=Video+1" alt="Placeholder video thumbnail" class="w-full rounded-md mb-2">
+                <p class="font-medium text-amber-800">How to Transfer Money</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <img src="https://placehold.co/300x180/E9D8A6/78350F?text=Video+2" alt="Placeholder video thumbnail" class="w-full rounded-md mb-2">
+                <p class="font-medium text-amber-800">Checking Your Balance</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <img src="https://placehold.co/300x180/E9D8A6/78350F?text=Video+3" alt="Placeholder video thumbnail" class="w-full rounded-md mb-2">
+                <p class="font-medium text-amber-800">Paying Bills</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <img src="https://placehold.co/300x180/E9D8A6/78350F?text=Video+4" alt="Placeholder video thumbnail" class="w-full rounded-md mb-2">
+                <p class="font-medium text-amber-800">Account Statements</p>
+            </div>
+        </div>
+        <button id="backFromSignBtn" class="back-button w-full">
+            <!-- Back Arrow Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Main
+        </button>
+    </div>
+
+    <!-- Text Support Interface: A basic chat window for support interaction -->
+    <div id="textSupportInterface" class="hidden w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6 flex flex-col h-[60vh]">
+        <h2 class="text-3xl font-bold text-amber-800 mb-4 text-center">Text Support Chat</h2>
+        <div id="chatWindow" class="flex-grow bg-white rounded-lg p-4 overflow-y-auto shadow-inner mb-4 space-y-3 no-scrollbar">
+            <!-- Initial chat messages (simulate a conversation start) -->
+            <div class="flex justify-start">
+                <div class="bg-gray-200 p-3 rounded-xl rounded-br-none max-w-[80%] text-gray-800">
+                    Hello! How can I assist you today?
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <div class="bg-amber-100 p-3 rounded-xl rounded-bl-none max-w-[80%] text-amber-800">
+                    Hi, I need help with my recent transaction.
+                </div>
+            </div>
+        </div>
+        <div class="flex space-x-2">
+            <input
+                type="text"
+                id="chatInput"
+                placeholder="Type your message..."
+                class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                dir="auto"
+            />
+            <button id="sendChatBtn" class="bg-amber-600 text-white p-3 rounded-lg font-semibold hover:bg-amber-700 transition duration-300">
+                <!-- Send Icon for chat input -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="send-icon"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+        <button id="backFromTextBtn" class="back-button w-full">
+            <!-- Back Arrow Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Main
+        </button>
+    </div>
+
+    <!-- PROFILE INTERFACE: Section for user profile details and settings -->
+    <div id="profileInterface" class="hidden w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6 text-center">
+        <h2 class="text-3xl font-bold text-amber-800 mb-6">Your Profile</h2>
+
+        <!-- Profile Picture Placeholder (displays "User" text) -->
+        <div class="flex justify-center mb-6">
+            <img src="https://placehold.co/120x120/E9D8A6/78350F?text=User" alt="Profile Picture" class="rounded-full border-4 border-amber-600 shadow-md">
+        </div>
+
+        <!-- User Name and ID Display -->
+        <div class="mb-6">
+            <p class="text-xl font-semibold text-gray-800">Welcome, <span id="profileUserName"></span>!</p>
+            <p id="profileUserId" class="text-sm text-gray-600">User ID: </p>
+        </div>
+
+        <!-- Balance Inquiry Section (re-uses balance display logic) -->
+        <section class="bg-white p-5 rounded-xl shadow-sm mb-6">
+            <h3 class="text-xl font-semibold mb-3 flex items-center justify-center">
+                <!-- Wallet Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-amber-600"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"></path><path d="M18 9.5a.5.5 0 0 0 1 0V9h-1v.5Z"></path></svg>
+                Balance Inquiry
+            </h3>
+            <p class="text-4xl font-bold text-amber-800" id="profileBalanceDisplay"></p>
+            <p class="text-gray-600 mt-2">Current Available Amount</p>
+        </section>
+
+        <!-- Other Profile Details / Settings Options -->
+        <div class="space-y-4">
+            <div class="flex items-center bg-white p-4 rounded-lg shadow-sm">
+                <!-- Mail Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 text-amber-600"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+                <div>
+                    <p class="font-medium">Email Address</p>
+                    <p class="text-gray-600">user@example.com</p>
+                </div>
+            </div>
+            <div class="flex items-center bg-white p-4 rounded-lg shadow-sm">
+                <!-- Phone Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 text-amber-600"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                <div>
+                    <p class="font-medium">Phone Number</p>
+                    <p class="text-gray-600">+20 100 123 4567</p>
+                </div>
+            </div>
+            <button class="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition duration-300 flex items-center justify-center">
+                <!-- Settings Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.35a2 2 0 0 0 .73 2.73l.09.09a2 2 0 0 1 0 2.83l-.08.08a2 2 0 0 0-.73 2.73l.78 1.35a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.78-1.35a2 2 0 0 0-.73-2.73l-.09-.09a2 2 0 0 1 0 2.83l.08-.08a2 2 0 0 0 .73-2.73l-.78-1.35a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                Account Settings
+            </button>
+        </div>
+
+        <button id="backFromProfileBtn" class="back-button w-full">
+            <!-- Back Arrow Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Main
+        </button>
+    </div>
+
+    <!-- CARDS INTERFACE: New section for managing cards -->
+    <div id="cardsInterface" class="hidden w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6 text-center">
+        <h2 class="text-3xl font-bold text-amber-800 mb-6">Your Cards</h2>
+
+        <div id="cardsDisplayContainer" class="space-y-4">
+            <!-- Cards will be dynamically rendered here -->
+        </div>
+
+        <button id="addNewCardBtn" class="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition duration-300 mt-6 flex items-center justify-center">
+            <!-- Plus Circle Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="16"></line><line x1="8" x2="16" y1="12" y2="12"></line></svg>
+            Add New Card
+        </button>
+        <button class="w-full bg-gray-500 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition duration-300 mt-3 flex items-center justify-center">
+            <!-- Settings Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.35a2 2 0 0 0 .73 2.73l.09.09a2 2 0 0 1 0 2.83l-.08.08a2 2 0 0 0-.73 2.73l.78 1.35a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.78-1.35a2 2 0 0 0-.73-2.73l-.09-.09a2 2 0 0 1 0-2.83l.08-.08a2 2 0 0 0 .73-2.73l-.78-1.35a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            Manage Cards
+        </button>
+
+        <button id="backFromCardsBtn" class="back-button w-full">
+            <!-- Back Arrow Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Main
+        </button>
+    </div>
+
+    <!-- HISTORY INTERFACE: New section for detailed transaction history -->
+    <div id="historyInterface" class="hidden w-full max-w-md bg-stone-100 rounded-2xl shadow-lg p-6 space-y-6">
+        <h2 class="text-3xl font-bold text-amber-800 mb-6 text-center">Transaction History</h2>
+
+        <!-- Filter/Sort Options (Placeholder) -->
+        <div class="flex justify-around bg-white p-3 rounded-xl shadow-sm mb-4">
+            <button class="text-amber-600 font-semibold border-b-2 border-amber-600 pb-1">All</button>
+            <button class="text-gray-500 hover:text-amber-600">Sent</button>
+            <button class="text-gray-500 hover:text-amber-600">Received</button>
+            <button class="text-gray-500 hover:text-amber-600">Pending</button>
+        </div>
+
+        <!-- Detailed Transaction List -->
+        <ul id="fullTransactionsList" class="space-y-3 bg-white p-4 rounded-xl shadow-sm">
+            <!-- Transactions will be dynamically loaded here -->
+        </ul>
+        
+        <button id="backFromHistoryBtn" class="back-button w-full">
+            <!-- Back Arrow Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Main
+        </button>
+    </div>
+
+    <!-- Camera Service Modal HTML (hidden by default) -->
+    <div id="cameraServiceModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeCameraModalBtn">&times;</span>
+            <h3 class="text-xl font-semibold mb-4 text-gray-800">Sign Language Customer Service</h3>
+            <p class="text-gray-600 mb-4">Connecting to customer service representative...</p>
+            <div class="video-placeholder">
+                <p>Loading video...</p>
+                <!-- In a real app, this would be a <video> element showing the live stream -->
+            </div>
+            <button class="mt-5 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-full transition-colors" onclick="closeCameraModal()">
+                End Call
+            </button>
+        </div>
+    </div>
+    <!-- End Camera Service Modal HTML -->
+
+    <!-- Generic Message Modal HTML (hidden by default) -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeMessageModalBtn">&times;</span>
+            <div id="messageModalIcon" class="message-modal-icon text-5xl mb-4"></div>
+            <h3 id="messageModalTitle" class="text-xl font-semibold mb-4 text-gray-800"></h3>
+            <p id="messageModalText" class="text-gray-600 mb-4"></p>
+            <button id="messageModalOkBtn" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-full transition-colors">
+                OK
+            </button>
+        </div>
+    </div>
+    <!-- End Generic Message Modal HTML -->
+
+    <!-- Add New Card Modal HTML (hidden by default) -->
+    <div id="addCardModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeAddCardModalBtn">&times;</span>
+            <h3 class="text-xl font-semibold mb-4 text-gray-800">Add New Card</h3>
+            <div class="space-y-4">
+                <input
+                    type="text"
+                    id="newCardNumber"
+                    placeholder="Card Number (16 digits)"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    dir="ltr" maxlength="19"
+                />
+                <input
+                    type="text"
+                    id="newCardHolderName"
+                    placeholder="Card Holder Name"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    dir="auto"
+                />
+                <input
+                    type="text"
+                    id="newCardExpiry"
+                    placeholder="Expiry Date (MM/YY)"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    dir="ltr" maxlength="5"
+                />
+                <input
+                    type="number"
+                    id="newCardCVC"
+                    placeholder="CVC"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    dir="ltr" maxlength="4"
+                />
+            </div>
+            <button id="submitNewCardBtn" class="w-full bg-amber-600 text-white py-3 rounded-lg font-semibold hover:bg-amber-700 transition duration-300 mt-6">
+                Save Card
+            </button>
+        </div>
+    </div>
+    <!-- End Add New Card Modal HTML -->
+
+
+    <!-- Bottom Navigation Bar: Fixed at the bottom for easy access to main sections -->
+    <nav class="w-full max-w-md bg-white rounded-t-2xl shadow-xl fixed bottom-0 left-1/2 -translate-x-1/2 flex justify-around py-3 border-t border-gray-200">
+        <button id="navHomeBtn" class="flex flex-col items-center text-amber-600">
+            <!-- Wallet Icon for Home -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="wallet"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"></path><path d="M18 9.5a.5.5 0 0 0 1 0V9h-1v.5Z"></path></svg>
+            <span class="text-xs mt-1">Home</span>
+        </button>
+        <button id="navCardsBtn" class="flex flex-col items-center text-gray-500 hover:text-amber-600">
+            <!-- CreditCard Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="credit-card"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
+            <span class="text-xs mt-1">Cards</span>
+        </button>
+        <button id="navHistoryBtn" class="flex flex-col items-center text-gray-500 hover:text-amber-600">
+            <!-- History Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.75L3 8"></path><path d="M3 3v5h5"></path></svg>
+            <span class="text-xs mt-1">History</span>
+        </button>
+        <button id="navProfileBtn" class="flex flex-col items-center text-gray-500 hover:text-amber-600">
+            <!-- User Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span class="text-xs mt-1">Profile</span>
+        </button>
+    </nav>
+
+    <script>
+        // --- App State ---
+        // Centralized data store for the application
+        const appState = {
+            userName: 'User',
+            userId: '10103',
+            balance: 1000000.00, // Stored as a number for calculations
+            currency: 'EGP',
+            transactions: [
+                { id: 1, type: 'Sent', to: 'Rodina', amount: 250.00, date: 'April 26, 2025', status: 'Completed' },
+                { id: 2, type: 'Received', from: 'Fjr Reda', amount: 150.00, date: 'April 18, 2025', status: 'Completed' },
+                { id: 3, type: 'Sent', to: 'Bank Transfer', amount: 1000.00, date: 'July 17, 2025', status: 'Pending' },
+                { id: 4, type: 'Received', from: 'Ahmed Said', amount: 500.00, date: 'April 15, 2025', status: 'Completed' },
+                { id: 5, type: 'Sent', to: 'Electricity Bill', amount: 300.00, date: 'April 10, 2025', status: 'Completed' },
+                { id: 6, type: 'Received', from: 'Salary', amount: 5000.00, date: 'April 01, 2025', status: 'Completed' },
+                { id: 7, type: 'Sent', to: 'Online Shopping', amount: 1200.00, date: 'March 28, 2025', status: 'Completed' },
+                { id: 8, type: 'Received', from: 'Refund', amount: 50.00, date: 'March 25, 2025', status: 'Completed' },
+                { id: 9, type: 'Sent', to: 'Mobile Recharge', amount: 100.00, date: 'March 20, 2025', status: 'Completed' }
+            ],
+            cards: [
+                { id: 'c1', type: 'Bank', lastFour: '1234', holder: 'User', expiry: '12/28', scheme: 'Sahhly Bank' },
+                { id: 'c2', type: 'Visa', lastFour: '5678', holder: 'User', expiry: '06/27', scheme: 'Visa' },
+                { id: 'c3', type: 'Mastercard', lastFour: '9012', holder: 'User', expiry: '09/26', scheme: 'Mastercard' }
+            ]
+        };
+
+        // --- DOM Element References ---
+        // Main content and interfaces
+        const mainContent = document.getElementById('mainContent');
+        const voiceControlInterface = document.getElementById('voiceControlInterface');
+        const signLanguageInterface = document.getElementById('signLanguageInterface');
+        const textSupportInterface = document.getElementById('textSupportInterface');
+        const profileInterface = document.getElementById('profileInterface');
+        const cardsInterface = document.getElementById('cardsInterface');
+        const historyInterface = document.getElementById('historyInterface');
+
+        // Main screen input/display elements
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        const transactionsList = document.getElementById('transactionsList'); // For recent transactions on main screen
+        const sendRecipientInput = document.getElementById('sendRecipient');
+        const sendAmountInput = document.getElementById('sendAmount');
+        const confirmSendBtn = document.getElementById('confirmSendBtn');
+
+        // Navigation buttons
+        const navHomeBtn = document.getElementById('navHomeBtn');
+        const navCardsBtn = document.getElementById('navCardsBtn');
+        const navHistoryBtn = document.getElementById('navHistoryBtn');
+        const navProfileBtn = document.getElementById('navProfileBtn');
+
+        // Back buttons
+        const backFromVoiceBtn = document.getElementById('backFromVoiceBtn');
+        const backFromSignBtn = document.getElementById('backFromSignBtn');
+        const backFromTextBtn = document.getElementById('backFromTextBtn');
+        const backFromProfileBtn = document.getElementById('backFromProfileBtn');
+        const backFromCardsBtn = document.getElementById('backFromCardsBtn');
+        const backFromHistoryBtn = document.getElementById('backFromHistoryBtn');
+
+        // Chat elements
+        const chatWindow = document.getElementById('chatWindow');
+        const chatInput = document.getElementById('chatInput');
+        const sendChatBtn = document.getElementById('sendChatBtn');
+
+        // Profile elements
+        const profileUserName = document.getElementById('profileUserName');
+        const profileUserId = document.getElementById('profileUserId');
+        const profileBalanceDisplay = document.getElementById('profileBalanceDisplay');
+
+        // History elements
+        const fullTransactionsList = document.getElementById('fullTransactionsList');
+
+        // Camera service modal elements
+        const cameraServiceModal = document.getElementById('cameraServiceModal');
+        const closeCameraModalBtn = document.getElementById('closeCameraModalBtn');
+        const signLanguageServiceBtn = document.getElementById('signLanguageServiceBtn');
+
+        // Generic Message Modal elements
+        const messageModal = document.getElementById('messageModal');
+        const closeMessageModalBtn = document.getElementById('closeMessageModalBtn');
+        const messageModalIcon = document.getElementById('messageModalIcon');
+        const messageModalTitle = document.getElementById('messageModalTitle');
+        const messageModalText = document.getElementById('messageModalText');
+        const messageModalOkBtn = document.getElementById('messageModalOkBtn');
+
+        // Add New Card Modal elements
+        const addCardModal = document.getElementById('addCardModal');
+        const addNewCardBtn = document.getElementById('addNewCardBtn');
+        const closeAddCardModalBtn = document.getElementById('closeAddCardModalBtn');
+        const newCardNumberInput = document.getElementById('newCardNumber');
+        const newCardHolderNameInput = document.getElementById('newCardHolderName');
+        const newCardExpiryInput = document.getElementById('newCardExpiry');
+        const newCardCVCInput = document.getElementById('newCardCVC');
+        const submitNewCardBtn = document.getElementById('submitNewCardBtn');
+        const cardsDisplayContainer = document.getElementById('cardsDisplayContainer'); // Container for rendering cards
+
+
+        // --- Helper Functions ---
+
+        /**
+         * Shows a specific interface (page) and hides all others.
+         * @param {HTMLElement} interfaceToShow - The DOM element of the interface to display.
+         */
+        function showInterface(interfaceToShow) {
+            // Hide all potential main views and sub-interfaces
+            mainContent.classList.add('hidden');
+            voiceControlInterface.classList.add('hidden');
+            signLanguageInterface.classList.add('hidden');
+            textSupportInterface.classList.add('hidden');
+            profileInterface.classList.add('hidden');
+            cardsInterface.classList.add('hidden');
+            historyInterface.classList.add('hidden');
+            cameraServiceModal.style.display = 'none'; // Ensure camera modal is hidden
+            messageModal.style.display = 'none'; // Ensure message modal is hidden
+            addCardModal.style.display = 'none'; // Ensure add card modal is hidden
+
+            // Show the requested interface
+            interfaceToShow.classList.remove('hidden');
+            window.scrollTo(0, 0); // Scroll to top when changing interface
+        }
+
+        /**
+         * Hides all sub-interfaces and brings the main content area back into view.
+         */
+        function showMainContent() {
+            showInterface(mainContent); // Use showInterface to bring mainContent to front
+            updateMainScreenData(); // Refresh data on main screen
+        }
+
+        /**
+         * Displays a custom message modal with dynamic content and icon.
+         * @param {string} title - The title for the message.
+         * @param {string} message - The message content.
+         * @param {'success'|'error'|'info'} type - Type of message for icon/styling.
+         */
+        function showMessageModal(title, message, type) {
+            messageModalTitle.textContent = title;
+            messageModalText.textContent = message;
+            messageModalIcon.className = `message-modal-icon text-5xl mb-4 ${type}`; // Reset and add type class
+            
+            // Set icon based on type
+            if (type === 'success') {
+                messageModalIcon.innerHTML = '&#10004;'; // Checkmark
+            } else if (type === 'error') {
+                messageModalIcon.innerHTML = '&#x2716;'; // X mark
+            } else { // info
+                messageModalIcon.innerHTML = '&#x2139;'; // Info icon
+            }
+
+            messageModal.style.display = 'flex'; // Show the modal
+        }
+
+        /**
+         * Closes the generic message modal.
+         */
+        function closeMessageModal() {
+            messageModal.style.display = 'none';
+        }
+
+        /**
+         * Closes the camera service modal.
+         */
+        function closeCameraModal() {
+            cameraServiceModal.style.display = 'none';
+            // In a real app, you would stop the camera stream here
+        }
+
+        /**
+         * Renders the list of recent transactions (first 4 for main screen).
+         */
+        function renderRecentTransactions() {
+            transactionsList.innerHTML = ''; // Clear existing list
+            // Display only the first 4 transactions for the "Recent Transactions" section on main page
+            const recentTx = appState.transactions.slice(0, 4);
+            if (recentTx.length === 0) {
+                const p = document.createElement('p');
+                p.className = 'text-gray-500 text-center py-4';
+                p.textContent = 'No recent transactions.';
+                transactionsList.appendChild(p);
+                return;
+            }
+
+            recentTx.forEach(transaction => {
+                const div = document.createElement('div');
+                div.className = 'p-4 flex items-center justify-between';
+
+                const leftDiv = document.createElement('div');
+                leftDiv.className = 'flex items-center space-x-3'; /* Adjusted for LTR */
+
+                const iconDiv = document.createElement('div');
+                iconDiv.className = `w-10 h-10 rounded-full flex items-center justify-center ${transaction.type === 'Sent' ? 'bg-red-100' : 'bg-green-100'}`;
+                iconDiv.innerHTML = transaction.type === 'Sent' ? `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                ` : `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                `; // Simplified icons for sent/received
+
+                const textDiv = document.createElement('div');
+                textDiv.className = 'text-left'; /* Adjusted for LTR */
+                const pName = document.createElement('p');
+                pName.className = 'font-semibold';
+                pName.textContent = transaction.type === 'Sent' ? `Sent to ${transaction.to}` : `Received from ${transaction.from}`;
+                const pDate = document.createElement('p');
+                pDate.className = 'text-sm text-gray-500';
+                pDate.textContent = transaction.date;
+                textDiv.appendChild(pName);
+                textDiv.appendChild(pDate);
+
+                leftDiv.appendChild(iconDiv);
+                leftDiv.appendChild(textDiv);
+
+                const amountP = document.createElement('p');
+                amountP.className = `${transaction.type === 'Sent' ? 'text-red-600' : 'text-green-600'} font-semibold`;
+                amountP.textContent = `${transaction.type === 'Sent' ? '-' : '+'} ${parseFloat(transaction.amount).toFixed(2)} ${appState.currency}`;
+
+                div.appendChild(leftDiv);
+                div.appendChild(amountP);
+                transactionsList.appendChild(div);
+            });
+        }
+
+        /**
+         * Renders the full list of transactions into the History interface.
+         */
+        function renderFullTransactions() {
+            fullTransactionsList.innerHTML = ''; // Clear existing list
+            if (appState.transactions.length === 0) {
+                const p = document.createElement('p');
+                p.className = 'text-gray-500 text-center py-4';
+                p.textContent = 'No transactions to display.';
+                fullTransactionsList.appendChild(p);
+                return;
+            }
+
+            // Sort transactions by date (most recent first) for history
+            const sortedTransactions = [...appState.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            sortedTransactions.forEach(transaction => {
+                const li = document.createElement('li');
+                li.className = 'p-4 flex items-center justify-between';
+
+                const leftDiv = document.createElement('div');
+                leftDiv.className = 'flex items-center space-x-3'; /* Adjusted for LTR */
+
+                const iconDiv = document.createElement('div');
+                iconDiv.className = `w-10 h-10 rounded-full flex items-center justify-center ${transaction.type === 'Sent' ? 'bg-red-100' : 'bg-green-100'}`;
+                iconDiv.innerHTML = transaction.type === 'Sent' ? `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                ` : `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                `;
+
+                const textDiv = document.createElement('div');
+                textDiv.className = 'text-left'; /* Adjusted for LTR */
+                const pName = document.createElement('p');
+                pName.className = 'font-semibold';
+                pName.textContent = transaction.type === 'Sent' ? `Sent to ${transaction.to}` : `Received from ${transaction.from}`;
+                const pDate = document.createElement('p');
+                pDate.className = 'text-sm text-gray-500';
+                pDate.textContent = transaction.date;
+                textDiv.appendChild(pName);
+                textDiv.appendChild(pDate);
+
+                leftDiv.appendChild(iconDiv);
+                leftDiv.appendChild(textDiv);
+
+                const amountP = document.createElement('p');
+                amountP.className = `${transaction.type === 'Sent' ? 'text-red-600' : 'text-green-600'} font-semibold`;
+                amountP.textContent = `${transaction.type === 'Sent' ? '-' : '+'} ${parseFloat(transaction.amount).toFixed(2)} ${appState.currency}`;
+
+                li.appendChild(leftDiv);
+                li.appendChild(amountP);
+                fullTransactionsList.appendChild(li);
+            });
+        }
+
+        /**
+         * Renders all cards from appState into the Cards interface.
+         */
+        function renderCards() {
+            cardsDisplayContainer.innerHTML = ''; // Clear existing cards
+            if (appState.cards.length === 0) {
+                const p = document.createElement('p');
+                p.className = 'text-gray-500 text-center py-4';
+                p.textContent = 'No cards to display.';
+                cardsDisplayContainer.appendChild(p);
+                return;
+            }
+
+            appState.cards.forEach(card => {
+                const cardDiv = document.createElement('div');
+                let cardClass = 'credit-card';
+                if (card.scheme.includes('Visa')) cardClass += ' visa';
+                if (card.scheme.includes('Mastercard')) cardClass += ' mastercard';
+                
+                cardDiv.className = cardClass + ' p-5 w-full flex-shrink-0'; // Ensure original classes are applied
+
+                cardDiv.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="text-lg font-bold">${card.scheme}</span>
+                        <!-- Info Icon / Placeholder for card logo -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" opacity=".3"/>
+                            <path d="M12 4c-4.41 0-8 3.59-8 8s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm1-10V7h-2v2h2zm0 8h-2v-6h2v6z"/>
+                            <circle cx="12" cy="12" r="10"/>
+                        </svg>
+                    </div>
+                    <div class="font-mono text-xl mb-4 tracking-wider">${card.lastFour}</div>
+                    <div class="flex justify-between text-sm">
+                        <div>
+                            <p class="opacity-70">Card Holder Name</p>
+                            <p class="font-semibold">${card.holder}</p>
+                        </div>
+                        <div>
+                            <p class="opacity-70">Expiry Date</p>
+                            <p class="font-semibold">${card.expiry}</p>
+                        </div>
+                    </div>
+                `;
+                cardsDisplayContainer.appendChild(cardDiv);
+            });
+        }
+
+        /**
+         * Updates the balance and user ID display across all relevant parts of the app.
+         */
+        function updateMainScreenData() {
+            userIdDisplay.querySelector('span').textContent = appState.userId;
+            balanceDisplay.innerHTML = `${parseFloat(appState.balance).toFixed(2)} <span class="text-2xl">${appState.currency}</span>`;
+            renderRecentTransactions();
+        }
+
+        // --- Event Listeners ---
+
+        // Main actions
+        confirmSendBtn.addEventListener('click', () => {
+            const recipient = sendRecipientInput.value.trim();
+            const amount = parseFloat(sendAmountInput.value);
+
+            if (!recipient || recipient.length < 3) {
+                showMessageModal('Transfer Error', 'Please enter a valid recipient name or phone number.', 'error');
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                showMessageModal('Transfer Error', 'Please enter a valid amount greater than zero.', 'error');
+                return;
+            }
+            if (amount > appState.balance) {
+                showMessageModal('Insufficient Balance', 'You do not have enough balance for this transfer.', 'error');
+                return;
+            }
+
+            // Simulate sending money
+            appState.balance -= amount;
+            appState.transactions.unshift({ // Add to the beginning of the transactions array
+                id: Date.now(), // Unique ID for transaction
+                type: 'Sent',
+                to: recipient,
+                amount: amount,
+                date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                status: 'Completed'
+            });
+
+            // Update UI
+            updateMainScreenData();
+            sendRecipientInput.value = '';
+            sendAmountInput.value = '';
+            showMessageModal('Transfer Successful', `Successfully transferred ${amount.toFixed(2)} ${appState.currency} to ${recipient}.`, 'success');
+        });
+
+        // Accessibility tools buttons
+        voiceControlBtn.addEventListener('click', () => {
+            showInterface(voiceControlInterface);
+        });
+        signLanguageBtn.addEventListener('click', () => {
+            showInterface(signLanguageInterface);
+        });
+        textSupportBtn.addEventListener('click', () => {
+            showInterface(textSupportInterface);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        });
+
+        // NEW: Sign Language Customer Service (Camera) button
+        signLanguageServiceBtn.addEventListener('click', () => {
+            cameraServiceModal.style.display = 'flex'; // Show the modal
+            // In a real app, you would initiate the camera stream here
+        });
+
+        // Emergency button
+        emergencyBtn.addEventListener('click', () => {
+            showMessageModal('Emergency Help', 'Connecting you to emergency services. Please wait...', 'info');
+        });
+
+        // Bottom Navigation Bar buttons
+        navHomeBtn.addEventListener('click', showMainContent);
+        navCardsBtn.addEventListener('click', () => {
+            showInterface(cardsInterface);
+            renderCards(); // Render cards when cards interface is shown
+        });
+        navHistoryBtn.addEventListener('click', () => {
+            showInterface(historyInterface);
+            renderFullTransactions(); // Render transactions when history is shown
+        });
+        navProfileBtn.addEventListener('click', () => {
+            showInterface(profileInterface);
+            profileUserName.textContent = appState.userName;
+            profileUserId.textContent = `User ID: ${appState.userId}`;
+            profileBalanceDisplay.innerHTML = `${parseFloat(appState.balance).toFixed(2)} <span class="text-2xl">${appState.currency}</span>`;
+        });
+
+        // Back buttons for all interfaces
+        backFromVoiceBtn.addEventListener('click', showMainContent);
+        backFromSignBtn.addEventListener('click', showMainContent);
+        backFromTextBtn.addEventListener('click', showMainContent);
+        backFromProfileBtn.addEventListener('click', showMainContent);
+        backFromCardsBtn.addEventListener('click', showMainContent);
+        backFromHistoryBtn.addEventListener('click', showMainContent);
+
+        // Chat functionality
+        sendChatBtn.addEventListener('click', () => {
+            const message = chatInput.value.trim();
+            if (message) {
+                appendChatMessage(message, 'user');
+                chatInput.value = '';
+                setTimeout(() => {
+                    appendChatMessage("Thank you for your message. A support agent will be with you shortly.", 'agent');
+                }, 1000);
+            }
+        });
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendChatBtn.click();
+            }
+        });
+
+        // Modals control
+        closeCameraModalBtn.addEventListener('click', closeCameraModal);
+        messageModalOkBtn.addEventListener('click', closeMessageModal);
+        closeMessageModalBtn.addEventListener('click', closeMessageModal);
+
+        // Add New Card functionality
+        addNewCardBtn.addEventListener('click', () => {
+            addCardModal.style.display = 'flex'; // Show the add card modal
+            // Clear previous input values
+            newCardNumberInput.value = '';
+            newCardHolderNameInput.value = '';
+            newCardExpiryInput.value = '';
+            newCardCVCInput.value = '';
+        });
+
+        closeAddCardModalBtn.addEventListener('click', () => {
+            addCardModal.style.display = 'none'; // Hide the add card modal
+        });
+
+        submitNewCardBtn.addEventListener('click', () => {
+            const cardNumber = newCardNumberInput.value.trim().replace(/\s/g, ''); // Remove spaces
+            const cardHolder = newCardHolderNameInput.value.trim();
+            const cardExpiry = newCardExpiryInput.value.trim();
+            const cardCVC = newCardCVCInput.value.trim();
+
+            // Basic validation
+            if (cardNumber.length < 16 || !/^\d+$/.test(cardNumber)) {
+                showMessageModal('Card Error', 'Please enter a valid 16-digit card number.', 'error');
+                return;
+            }
+            if (!cardHolder) {
+                showMessageModal('Card Error', 'Please enter the card holder\'s name.', 'error');
+                return;
+            }
+            if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+                showMessageModal('Card Error', 'Please enter a valid expiry date (MM/YY).', 'error');
+                return;
+            }
+            if (cardCVC.length < 3 || !/^\d+$/.test(cardCVC)) {
+                showMessageModal('Card Error', 'Please enter a valid CVC (3 or 4 digits).', 'error');
+                return;
+            }
+
+            // Determine card scheme (simplified for demo)
+            let scheme = 'Sahhly Bank';
+            if (cardNumber.startsWith('4')) {
+                scheme = 'Visa';
+            } else if (cardNumber.startsWith('5')) {
+                scheme = 'Mastercard';
+            }
+
+            // Add new card to state
+            appState.cards.push({
+                id: `c${Date.now()}`,
+                type: scheme,
+                lastFour: cardNumber.slice(-4),
+                holder: cardHolder,
+                expiry: cardExpiry,
+                scheme: scheme
+            });
+
+            addCardModal.style.display = 'none'; // Hide modal
+            renderCards(); // Re-render cards to show the new one
+            showMessageModal('Card Added', 'Your new card has been successfully added.', 'success');
+        });
+
+        // Card number input formatting (add spaces every 4 digits)
+        newCardNumberInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\s/g, ''); // Remove existing spaces
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || ''; // Add space every 4 digits
+            e.target.value = formattedValue;
+        });
+        // Card expiry input formatting (add / after MM)
+        newCardExpiryInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+            if (value.length > 2) {
+                value = value.slice(0, 2) + '/' + value.slice(2, 4);
+            }
+            e.target.value = value;
+        });
+
+
+        // --- Initial App Load ---
+        // Render initial data when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            updateMainScreenData(); // Render initial balance and recent transactions
+            // All other interfaces are hidden by default and shown via navigation clicks
+        });
+    </script>
+</body>
+</html>
